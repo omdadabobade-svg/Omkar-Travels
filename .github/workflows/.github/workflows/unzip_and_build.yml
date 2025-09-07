@@ -1,0 +1,62 @@
+name: Build Omkar Apps
+
+on:
+  workflow_dispatch: # Run manually
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.0'
+
+      # -----------------------
+      # Customer App
+      # -----------------------
+      - name: Create Customer Flutter project
+        run: |
+          mkdir customer
+          cd customer
+          flutter create . --platforms=android --overwrite
+          rm -f lib/main.dart
+          cp ../customer/lib/custom_main.dart lib/main.dart
+
+      - name: Build Customer APK
+        run: |
+          cd customer
+          flutter build apk --release
+
+      - name: Upload Customer APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: OmkarCustomerAPK
+          path: customer/build/app/outputs/flutter-apk/app-release.apk
+
+      # -----------------------
+      # Admin App
+      # -----------------------
+      - name: Create Admin Flutter project
+        run: |
+          mkdir admin
+          cd admin
+          flutter create . --platforms=android --overwrite
+          rm -f lib/main.dart
+          cp ../admin/lib/custom_main.dart lib/main.dart
+          flutter pub add webview_flutter
+
+      - name: Build Admin APK
+        run: |
+          cd admin
+          flutter build apk --release
+
+      - name: Upload Admin APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: OmkarAdminAPK
+          path: admin/build/app/outputs/flutter-apk/app-release.apk
