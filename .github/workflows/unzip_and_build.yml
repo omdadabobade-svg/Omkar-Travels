@@ -1,6 +1,9 @@
 name: Unzip and Build Omkar Apps
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
@@ -9,41 +12,45 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.22.0'
+          flutter-version: '3.19.0'
 
-      - name: Install unzip
-        run: sudo apt-get update && sudo apt-get install -y unzip
+      - name: Unzip customer app
+        run: unzip customer_app.zip -d customer_app
 
-      - name: Unzip Omkar_Apps_Repo_v3.zip
-        run: unzip -o Omkar_Apps_Repo_v3.zip -d omkar_apps
+      - name: Unzip admin app
+        run: unzip admin_app.zip -d admin_app
 
-      # Customer App
-      - name: Build Customer APK
+      - name: Build Customer App APK
         run: |
-          cd omkar_apps/customer
+          cd customer_app
           flutter pub get
           flutter build apk --release
 
       - name: Upload Customer APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: OmkarCustomerAPK
-          path: omkar_apps/customer/build/app/outputs/flutter-apk/app-release.apk
+          path: customer_app/build/app/outputs/flutter-apk/app-release.apk
 
-      # Admin App
-      - name: Build Admin APK
+      - name: Build Admin App APK
         run: |
-          cd omkar_apps/admin
+          cd admin_app
           flutter pub get
           flutter build apk --release
 
       - name: Upload Admin APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: OmkarAdminAPK
-          path: omkar_apps/admin/build/app/outputs/flutter-apk/app-release.apk
+          path: admin_app/build/app/outputs/flutter-apk/app-release.apk
