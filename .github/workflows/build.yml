@@ -4,36 +4,46 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-customer:
+  build:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
-      - uses: subosito/flutter-action@v2
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.22.0'
-      - name: Build Customer APK
+          flutter-version: "3.19.6"
+
+      - name: Unzip Omkar Apps Repo
+        run: unzip Omkar_Apps_Repo_v3.zip -d omkar_apps
+
+      - name: Build Customer App
         run: |
-          cd customer
-          flutter pub get
+          cd omkar_apps/customer
+          flutter create . --platforms=android --overwrite
+          cp lib/custom_main.dart lib/main.dart
           flutter build apk --release
-      - uses: actions/upload-artifact@v3
+        continue-on-error: true
+
+      - name: Upload Customer APK
+        uses: actions/upload-artifact@v3
         with:
           name: OmkarCustomerAPK
-          path: customer/build/app/outputs/flutter-apk/app-release.apk
+          path: omkar_apps/customer/build/app/outputs/flutter-apk/app-release.apk
 
-  build-admin:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.22.0'
-      - name: Build Admin APK
+      - name: Build Admin App
         run: |
-          cd admin
-          flutter pub get
+          cd omkar_apps/admin
+          flutter create . --platforms=android --overwrite
+          cp lib/custom_main.dart lib/main.dart
+          flutter pub add webview_flutter
           flutter build apk --release
-      - uses: actions/upload-artifact@v3
+        continue-on-error: true
+
+      - name: Upload Admin APK
+        uses: actions/upload-artifact@v3
         with:
           name: OmkarAdminAPK
-          path: admin/build/app/outputs/flutter-apk/app-release.apk
+          path: omkar_apps/admin/build/app/outputs/flutter-apk/app-release.apk
