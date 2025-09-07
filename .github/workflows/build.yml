@@ -1,6 +1,9 @@
 name: Build Omkar Apps
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
@@ -11,39 +14,26 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
         with:
-          flutter-version: "3.19.6"
+          node-version: 18
 
-      - name: Unzip Omkar Apps Repo
-        run: unzip Omkar_Apps_Repo_v3.zip -d omkar_apps
+      - name: Install dependencies
+        run: npm install
 
-      - name: Build Customer App
+      - name: Build project
+        run: npm run build
+
+      - name: Build Android APK
         run: |
-          cd omkar_apps/customer
-          flutter create . --platforms=android --overwrite
-          cp lib/custom_main.dart lib/main.dart
-          flutter build apk --release
-        continue-on-error: true
+          npx expo install
+          npx expo prebuild
+          npx expo run:android --variant release
 
-      - name: Upload Customer APK
+      - name: Upload APK
         uses: actions/upload-artifact@v3
         with:
-          name: OmkarCustomerAPK
-          path: omkar_apps/customer/build/app/outputs/flutter-apk/app-release.apk
+          name: Omkar-App-APK
+          path: android/app/build/outputs/apk/release/app-release.apk
 
-      - name: Build Admin App
-        run: |
-          cd omkar_apps/admin
-          flutter create . --platforms=android --overwrite
-          cp lib/custom_main.dart lib/main.dart
-          flutter pub add webview_flutter
-          flutter build apk --release
-        continue-on-error: true
-
-      - name: Upload Admin APK
-        uses: actions/upload-artifact@v3
-        with:
-          name: OmkarAdminAPK
-          path: omkar_apps/admin/build/app/outputs/flutter-apk/app-release.apk
